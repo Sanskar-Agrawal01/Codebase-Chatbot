@@ -123,6 +123,10 @@ export const promptAPI = {
     const response = await api.get(`/prompt/get-prompts/${chat_id}`);
     return response.data;
   },
+  getPromptStatus: async (prompt_id) => {
+    const response = await api.get(`/prompt/get-prompt-status/${prompt_id}`);
+    return response.data;
+  },
 };
 
 export default api;

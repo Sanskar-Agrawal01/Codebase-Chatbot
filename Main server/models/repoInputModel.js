@@ -12,7 +12,7 @@ const RepoInput = sequelize.define(
     },
     email: {
       type: DataTypes.STRING,
-      unique: true,
+      // unique: true,
       allowNull: false,
     },
     repo_url: {

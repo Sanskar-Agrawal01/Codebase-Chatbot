@@ -17,20 +17,11 @@ export async function saveRepoInput(req, res) {
   try {
     const { email, repo_url } = req.body;
 
-    //console.log("Data to be added to queue:", email, repos[0]);
-
     if (!email || !repo_url) {
       return res.status(400).json({ error: "Email and repo_url are required" });
     }
-
-    // Use upsert to create or update
-    const [repoData, created] = await RepoInput.upsert(
-      { email, repo_url },
-      { returning: true }
-    );
-
+    const repoData = await RepoInput.create({ email, repo_url });
     await addToQueue(email, repo_url);
-
     res.status(201).json(repoData);
   } catch (err) {
     console.error("Save repo input error:", err);

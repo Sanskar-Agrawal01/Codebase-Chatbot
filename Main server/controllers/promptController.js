@@ -9,55 +9,59 @@ export async function savePrompt(req, res) {
     let { chat_id, prompt, repo_id } = req.body;
 
     if (!chat_id || !prompt) {
-      return res.status(400).json({ error: "Email and prompt are required" });
+      return res.status(400).json({ error: "Chat ID and prompt are required" });
     }
 
+    // If -1 → create new chat
     if (chat_id === -1) {
-      const newChat = await Chat.create({
-        repo_id
-      });
-
-      if (!newChat) {
-        return res.status(500).json({ error: "Unable to create new chat" });
-      }
-
-      chat_id = newChat.chat_id; // now allowed
+      const newChat = await Chat.create({ repo_id });
+      chat_id = newChat.chat_id;
     }
 
+    
     const newPrompt = await Prompt.create({
       chat_id,
       prompt,
+      response: null,
     });
 
-    const data = await RepoInput.findOne({ where: { repo_id } });
-
-    const answer = await generation(prompt, data.email, data.repo_url);
-
-    if (answer.error) {
-      return res.status(500).json({ error: answer.error });
-    }
-
-    await Prompt.update(
-      { response: answer.answer },
-      { where: { prompt_id: newPrompt.prompt_id } }
-    );
-
-    const updatedPrompt = await Prompt.findByPk(newPrompt.prompt_id);
-
+    // Respond to frontend 
     res.status(201).json({
-      message: "Prompt saved successfully",
-      data: updatedPrompt,
+      message: "Prompt received. Processing...",
+      prompt_id: newPrompt.prompt_id,
       chat_id: chat_id,
+      status: "processing",
     });
+
+    //  Background job: run generation AFTER response
+    process.nextTick(async () => {
+      try {
+        const repoData = await RepoInput.findOne({ where: { repo_id } });
+
+        const answer = await generation(
+          prompt,
+          repoData.email,
+          repoData.repo_url
+        );
+
+        await Prompt.update(
+          { response: answer.answer },
+          { where: { prompt_id: newPrompt.prompt_id } }
+        );
+
+        console.log("LLM generation finished for prompt:", newPrompt.prompt_id);
+
+      } catch (err) {
+        console.error("Background generation error:", err);
+      }
+    });
+
   } catch (err) {
     console.error("Save prompt error:", err);
-    res.status(500).json({
-      error: "Failed to save prompt",
-      details:
-        process.env.NODE_ENV === "development" ? err.message : undefined,
-    });
+    res.status(500).json({ error: "Failed to save prompt" });
   }
 }
+
 
 export async function getPrompts(req, res) {
   try {
