@@ -17,20 +17,11 @@ export async function saveRepoInput(req, res) {
   try {
     const { email, repo_url } = req.body;
 
-    //console.log("Data to be added to queue:", email, repos[0]);
-
     if (!email || !repo_url) {
       return res.status(400).json({ error: "Email and repo_url are required" });
     }
-
-    // Use upsert to create or update
-    const [repoData, created] = await RepoInput.upsert(
-      { email, repo_url },
-      { returning: true }
-    );
-
+    const repoData = await RepoInput.create({ email, repo_url });
     await addToQueue(email, repo_url);
-
     res.status(201).json(repoData);
   } catch (err) {
     console.error("Save repo input error:", err);
@@ -60,6 +51,49 @@ export async function getRepoInput(req, res) {
     console.error("Get repo input error:", err);
     res.status(500).json({ 
       error: "Failed to get data",
+      details: process.env.NODE_ENV === "development" ? err.message : undefined
+    });
+  }
+}
+
+export async function getAllReposByEmail(req, res) {
+  try {
+    const email = req.params.email;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const repos = await RepoInput.findAll({ where: { email } });
+    res.status(200).json(repos);
+  } catch (err) {
+    console.error("Get all repos error:", err);
+    res.status(500).json({ 
+      error: "Failed to get repos",
+      details: process.env.NODE_ENV === "development" ? err.message : undefined
+    });
+  }
+}
+
+export async function deleteRepo(req, res) {
+  try {
+    const repo_id = req.params.repo_id;
+
+    if (!repo_id) {
+      return res.status(400).json({ error: "Repo id is required" });
+    }
+
+    const deleted = await RepoInput.destroy({ where: { repo_id } });
+    
+    if (!deleted) {
+      return res.status(404).json({ error: "Repository not found" });
+    }
+
+    res.status(200).json({ message: "Repository deleted successfully" });
+  } catch (err) {
+    console.error("Delete repo error:", err);
+    res.status(500).json({ 
+      error: "Failed to delete repository",
       details: process.env.NODE_ENV === "development" ? err.message : undefined
     });
   }

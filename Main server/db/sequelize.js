@@ -16,7 +16,7 @@ const sequelize = new Sequelize(
   process.env.POSTGRES_USERNAME,
   process.env.POSTGRES_PASSWORD,
   {
-    host: "localhost",
+    host: process.env.POSTGRES_HOST || "localhost",
     dialect: "postgres",
     logging: false,
     pool: {
@@ -31,7 +31,7 @@ const sequelize = new Sequelize(
 export async function connectSequelize() {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: false });
+    await sequelize.sync({ alter: true });
     return sequelize;
   } catch (error) {
     console.error("Database connection failed:", error.message);

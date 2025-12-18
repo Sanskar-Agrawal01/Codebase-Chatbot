@@ -85,19 +85,46 @@ export const authAPI = {
 };
 
 export const repoAPI = {
-  saveRepo: async (email, repos) => {
-    const response = await api.post('/repo/save-repo', { email, repos });
+  saveRepo: async (email, repo_url) => {
+    const response = await api.post('/repo/save-repo', { email, repo_url });
     return response.data;
   },
-  getRepo: async (email) => {
-    const response = await api.get(`/repo/get-repo/${email}`);
+  getRepo: async (repo_id) => {
+    const response = await api.get(`/repo/get-repo/${repo_id}`);
+    return response.data;
+  },
+  getAllRepos: async (email) => {
+    const response = await api.get(`/repo/get-all-repos/${email}`);
+    return response.data;
+  },
+  deleteRepo: async (repo_id) => {
+    const response = await api.delete(`/repo/delete-repo/${repo_id}`);
+    return response.data;
+  },
+};
+
+export const chatAPI = {
+  getChat: async (chat_id) => {
+    const response = await api.get(`/chat/get-chat/${chat_id}`);
+    return response.data;
+  },
+  getAllChats: async (repo_id) => {
+    const response = await api.get(`/chat/get-all-chats/${repo_id}`);
     return response.data;
   },
 };
 
 export const promptAPI = {
-  savePrompt: async (email, prompt) => {
-    const response = await api.post('/prompt/save-prompt', { email, prompt });
+  savePrompt: async (chat_id, prompt, repo_id) => {
+    const response = await api.post('/prompt/save-prompt', { chat_id, prompt, repo_id });
+    return response.data;
+  },
+  getPrompts: async (chat_id) => {
+    const response = await api.get(`/prompt/get-prompts/${chat_id}`);
+    return response.data;
+  },
+  getPromptStatus: async (prompt_id) => {
+    const response = await api.get(`/prompt/get-prompt-status/${prompt_id}`);
     return response.data;
   },
 };

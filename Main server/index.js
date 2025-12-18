@@ -4,9 +4,10 @@ import { connectSequelize } from "./db/sequelize.js";
 import routes from "./routes/index.js";
 
 import "./models/authModel.js";
+import "./models/repoInputModel.js";
 import "./models/chatModel.js";
 import "./models/promptModel.js";
-import "./models/repoInputModel.js";
+
 
 dotenv.config();
 

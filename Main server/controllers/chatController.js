@@ -1,6 +1,6 @@
 import Chat from "../models/chatModel.js";
 
-export async function getAllChats(req, res){
+export async function getChat(req, res){
     try{
         const chat_id = req.params.chat_id;
 
@@ -15,6 +15,30 @@ export async function getAllChats(req, res){
         }
     
         res.status(200).json(data);
+    }
+    catch(err){
+        console.error("Get chat error:", err);
+        res.status(500).json({ 
+        error: "Failed to get chat",
+        details: process.env.NODE_ENV === "development" ? err.message : undefined
+        });
+    }
+}
+
+export async function getAllChatsByRepo(req, res){
+    try{
+        const repo_id = req.params.repo_id;
+
+        if (!repo_id) {
+            return res.status(400).json({ error: "Repo id is required" });
+        }
+    
+        const chats = await Chat.findAll({ 
+            where: { repo_id },
+            order: [['created_at', 'DESC']]
+        });
+    
+        res.status(200).json(chats);
     }
     catch(err){
         console.error("Get all chats error:", err);
